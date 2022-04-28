@@ -53,7 +53,7 @@ func getForbesList() string {
 }
 
 func runBot() {
-	tgKey := os.Getenv("TELEGRAM_KEY")
+	tgKey := getEnv("TELEGRAM_KEY", "hello")
 	bot, err := tgbotapi.NewBotAPI(tgKey)
 	// bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
@@ -96,7 +96,7 @@ func runBot() {
 
 		// Create a new MessageConfig. We don't have text yet,
 		// so we leave it empty.
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello there 👋🏻")
 
 		// Extract the command from the Message.
 		switch update.Message.Command() {
@@ -146,7 +146,8 @@ func getEnv(key, fallback string) string {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		return os.Getenv(key)
+		// log.Fatalf("Error loading .env file")
 	}
 
 	return os.Getenv(key)
