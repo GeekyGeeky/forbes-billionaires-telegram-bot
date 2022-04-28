@@ -136,7 +136,7 @@ func main() {
 			}
 		}
 	}()
-	fmt.Printf("Running")
+	fmt.Printf("Running - success")
 	runBot()
 }
 
