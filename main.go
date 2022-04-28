@@ -122,7 +122,7 @@ func runBot() {
 }
 
 func main() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(3500 * time.Second)
 	quit := make(chan struct{})
 	go func() {
 		for {
