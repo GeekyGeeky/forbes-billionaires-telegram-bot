@@ -53,7 +53,7 @@ func getForbesList() string {
 }
 
 func runBot() {
-	tgKey := getEnv("TELEGRAM_KEY", "")
+	tgKey := os.Getenv("TELEGRAM_KEY")
 	bot, err := tgbotapi.NewBotAPI(tgKey)
 	// bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
@@ -136,6 +136,7 @@ func main() {
 			}
 		}
 	}()
+	fmt.Printf("Running")
 	runBot()
 }
 
