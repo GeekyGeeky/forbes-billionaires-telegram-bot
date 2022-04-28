@@ -151,4 +151,6 @@ func getEnv(key, fallback string) string {
 	}
 
 	return os.Getenv(key)
+	// web: bin/forbes-billionaires-telegram-bot
+
 }
