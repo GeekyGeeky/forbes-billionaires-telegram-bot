@@ -52,7 +52,7 @@ func getForbesList() string {
 
 }
 
-func runBot() {
+func runBot(result string) {
 	tgKey := getEnv("TELEGRAM_KEY", "hello")
 	bot, err := tgbotapi.NewBotAPI(tgKey)
 	// bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -75,7 +75,7 @@ func runBot() {
 	// Start polling Telegram for updates.
 	updates := bot.GetUpdatesChan(updateConfig)
 	// get forbes list
-	result := getForbesList()
+
 	// Let's go through each update that we're getting from Telegram.
 	for update := range updates {
 		// Telegram can send many types of updates depending on what your Bot
@@ -96,40 +96,44 @@ func runBot() {
 
 		// Create a new MessageConfig. We don't have text yet,
 		// so we leave it empty.
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello there 👋🏻")
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
 		// Extract the command from the Message.
 		switch update.Message.Command() {
 		case "help":
+			msg.Text = "Display current forbes list /list\n\nDisplay today's winners /winners\n\nDisplay today's losers /losers"
 		case "start":
 			msg.Text = "Display current forbes list /list\n\nDisplay today's winners /winners\n\nDisplay today's losers /losers"
 		case "list":
 			msg.Text = result
 			// tgbotapi
 		default:
-			msg.Text = "Command not available.\nUse /help to view available commands"
+			msg.Text = "Hello there 👋🏻\nCommand not available.\nUse /help to view available commands"
 		}
 
 		// Okay, we're sending our message off! We don't care about the message
 		// we just sent, so we'll discard it.
 		if _, err := bot.Send(msg); err != nil {
+			fmt.Println("Telegram send error")
 			// Note that panics are a bad way to handle errors. Telegram can
 			// have service outages or network errors, you should retry sending
 			// messages or more gracefully handle failures.
-			panic(err)
+			// panic(err)
 		}
 	}
 }
 
 func main() {
-	ticker := time.NewTicker(3500 * time.Second)
+	ticker := time.NewTicker(3600 * time.Second)
 	quit := make(chan struct{})
+	result := getForbesList()
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				// do stuff
-				fmt.Println("Every hour on the half houddr")
+				fmt.Println("Every hour fetch data")
+				result = getForbesList()
 			case <-quit:
 				ticker.Stop()
 				return
@@ -137,7 +141,7 @@ func main() {
 		}
 	}()
 	fmt.Printf("Running - success")
-	runBot()
+	runBot(result)
 }
 
 // Gets default value passed if no value exist for given environment variable.
