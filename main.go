@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func getForbesList() string {
+func getForbesList(result *string, winners *string, losers *string) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
@@ -26,7 +26,7 @@ func getForbesList() string {
 
 	url := "https://www.forbes.com/real-time-billionaires"
 
-	var res string
+	var res, w, l string
 	// var nodes []*cdp.Node
 	err := chromedp.Run(ctx,
 		emulation.SetUserAgentOverride(`Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36`),
@@ -35,16 +35,21 @@ func getForbesList() string {
 		chromedp.WaitReady("table", chromedp.ByQuery),
 		chromedp.WaitVisible("table tr", chromedp.ByQueryAll),
 		chromedp.Text("table tbody", &res, chromedp.ByQueryAll),
+		chromedp.Text("div > .winners-row", &w, chromedp.ByQueryAll),
+		chromedp.Text("div > .losers-row", &l, chromedp.ByQueryAll),
 	)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// fmt.Println(strings.TrimSpace(res))
+	fmt.Println(l)
+	// fmt.Println(strings.TrimSpace(w))
 	// fmt.Printf("%s___________\n", res)
 	fmt.Printf("\nTook: %f secs\n", time.Since(start).Seconds())
-	return res
+	*result = res
+	*winners = w
+	*losers = l
 	// for _, n := range nodes {
 	// 	u := n.Children
 	// 	fmt.Println(u)
@@ -52,7 +57,7 @@ func getForbesList() string {
 
 }
 
-func runBot(result string) {
+func runBot(result string, losers string, winners string) {
 	tgKey := getEnv("TELEGRAM_KEY", "hello")
 	bot, err := tgbotapi.NewBotAPI(tgKey)
 	// bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -106,7 +111,10 @@ func runBot(result string) {
 			msg.Text = "Display current forbes list /list\n\nDisplay today's winners /winners\n\nDisplay today's losers /losers"
 		case "list":
 			msg.Text = result
-			// tgbotapi
+		case "losers":
+			msg.Text = losers
+		case "winners":
+			msg.Text = winners
 		default:
 			msg.Text = "Hello there 👋🏻\nCommand not available.\nUse /help to view available commands"
 		}
@@ -126,14 +134,15 @@ func runBot(result string) {
 func main() {
 	ticker := time.NewTicker(3600 * time.Second)
 	quit := make(chan struct{})
-	result := getForbesList()
+	var result, winners, losers string
+	getForbesList(&result, &winners, &losers)
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				// do stuff
 				fmt.Println("Every hour fetch data")
-				result = getForbesList()
+				getForbesList(&result, &winners, &losers)
 			case <-quit:
 				ticker.Stop()
 				return
@@ -141,7 +150,8 @@ func main() {
 		}
 	}()
 	fmt.Printf("Running - success")
-	runBot(result)
+	runBot(result, losers, winners)
+
 }
 
 // Gets default value passed if no value exist for given environment variable.
