@@ -1,8 +1,5 @@
 package main
 
-// "os"
-
-//
 import (
 	"context"
 	"fmt"
@@ -27,11 +24,9 @@ func getForbesList(result *string, winners *string, losers *string) {
 	url := "https://www.forbes.com/real-time-billionaires"
 
 	var res, w, l string
-	// var nodes []*cdp.Node
 	err := chromedp.Run(ctx,
 		emulation.SetUserAgentOverride(`Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36`),
 		chromedp.Navigate(url),
-		// chromedp.ScrollIntoView(`table`),
 		chromedp.WaitReady("table", chromedp.ByQuery),
 		chromedp.WaitVisible("table tr", chromedp.ByQueryAll),
 		chromedp.Text("table tbody", &res, chromedp.ByQueryAll),
@@ -42,18 +37,11 @@ func getForbesList(result *string, winners *string, losers *string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	fmt.Println(l)
-	// fmt.Println(strings.TrimSpace(w))
-	// fmt.Printf("%s___________\n", res)
 	fmt.Printf("\nTook: %f secs\n", time.Since(start).Seconds())
 	*result = res
 	*winners = w
 	*losers = l
-	// for _, n := range nodes {
-	// 	u := n.Children
-	// 	fmt.Println(u)
-	// }
 
 }
 
@@ -75,29 +63,17 @@ func runBot(result string, losers string, winners string) {
 	// Tell Telegram we should wait up to 30 seconds on each request for an
 	// update. This way we can get information just as quickly as making many
 	// frequent requests without having to send nearly as many.
+
 	updateConfig.Timeout = 30
 
 	// Start polling Telegram for updates.
 	updates := bot.GetUpdatesChan(updateConfig)
-	// get forbes list
 
-	// Let's go through each update that we're getting from Telegram.
 	for update := range updates {
-		// Telegram can send many types of updates depending on what your Bot
-		// is up to. We only want to look at messages for now, so we can
-		// discard any other updates.
+
 		if update.Message == nil {
 			continue
 		}
-
-		// Now that we know we've gotten a new message, we can construct a
-		// reply! We'll take the Chat ID and Text from the incoming message
-		// and use it to create a new message.
-		///	msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		// We'll also say that this message is a reply to the previous message.
-		// For any other specifications than Chat ID or Text, you'll need to
-		// set fields on the `MessageConfig`.
-		///	msg.ReplyToMessageID = update.Message.MessageID
 
 		// Create a new MessageConfig. We don't have text yet,
 		// so we leave it empty.
@@ -123,10 +99,6 @@ func runBot(result string, losers string, winners string) {
 		// we just sent, so we'll discard it.
 		if _, err := bot.Send(msg); err != nil {
 			fmt.Println("Telegram send error")
-			// Note that panics are a bad way to handle errors. Telegram can
-			// have service outages or network errors, you should retry sending
-			// messages or more gracefully handle failures.
-			// panic(err)
 		}
 	}
 }
@@ -140,7 +112,6 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				// do stuff
 				fmt.Println("Every hour fetch data")
 				getForbesList(&result, &winners, &losers)
 			case <-quit:
@@ -161,10 +132,7 @@ func getEnv(key, fallback string) string {
 
 	if err != nil {
 		return os.Getenv(key)
-		// log.Fatalf("Error loading .env file")
 	}
 
 	return os.Getenv(key)
-	// web: bin/forbes-billionaires-telegram-bot
-
 }
